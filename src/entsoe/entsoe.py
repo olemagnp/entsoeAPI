@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 import aiohttp
 
 import datetime
@@ -10,7 +10,13 @@ from .forex import Forex
 
 
 class Price:
-    def __init__(self, begin, end, price_orig, rate=None) -> None:
+    def __init__(
+        self,
+        begin: datetime.datetime,
+        end: datetime.datetime,
+        price_orig: float,
+        rate: Optional[float] = None,
+    ) -> None:
         self.begin = begin
         self.end = end
         self.price_orig = price_orig
@@ -19,22 +25,22 @@ class Price:
         else:
             self.price_target = price_orig * rate
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Price [begin={self.begin}, end={self.end}, price_orig={self.price_orig}, price_target={self.price_target}]"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
 
 class EntsoeDayAhead:
     def __init__(
         self,
-        access_token,
-        area,
-        currency="auto",
-        measurement_unit="kWh",
-        session=None,
-        url="https://transparency.entsoe.eu/api",
+        access_token: str,
+        area: str,
+        currency: str = "auto",
+        measurement_unit: str = "kWh",
+        session: Optional[aiohttp.ClientSession] = None,
+        url: str = "https://transparency.entsoe.eu/api",
         forex: Optional[Forex] = None,
     ) -> None:
         self.access_token = access_token
@@ -57,7 +63,7 @@ class EntsoeDayAhead:
         elif measurement_unit.lower() == "wh":
             self.measurement_unit = "Wh"
 
-        self.prices = []
+        self.prices: List[Price] = []
 
     def get_unit_multiplier(self, unit):
         mults = {"": 1, "k": 1e3, "m": 1e6}
