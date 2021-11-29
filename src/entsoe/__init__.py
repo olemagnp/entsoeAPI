@@ -1,3 +1,3 @@
-from .entsoe import EntsoeAPI
+from .entsoe import EntsoeDayAhead
 
-__all__ = [EntsoeAPI]
+__all__ = [EntsoeDayAhead]
