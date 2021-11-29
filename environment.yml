@@ -1,0 +1,9 @@
+name: EntsoeAPI
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python==3.9
+  - aiohttp==3.7.4.post0
+  - lxml==4.6.3
+  - isodate==0.6.0
