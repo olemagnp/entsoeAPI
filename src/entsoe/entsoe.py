@@ -1,21 +1,29 @@
 from typing import Optional
 import aiohttp
-import asyncio
-
-from lxml import etree
 
 import datetime
 
 from .consts import DAY_AHEAD_DOCUMENT, DATE_FORMAT
 from .xmlreader import day_ahead_price_list
 
+from .forex import Forex
+
 
 class Price:
-    def __init__(self, begin, end, price_orig, price_target=None) -> None:
+    def __init__(self, begin, end, price_orig, rate=None) -> None:
         self.begin = begin
         self.end = end
         self.price_orig = price_orig
-        self.price_target = price_target
+        if rate is None:
+            self.price_target = None
+        else:
+            self.price_target = price_orig * rate
+
+    def __str__(self):
+        return f"Price [begin={self.begin}, end={self.end}, price_orig={self.price_orig}, price_target={self.price_target}]"
+
+    def __repr__(self):
+        return self.__str__()
 
 
 class EntsoeDayAhead:
@@ -24,14 +32,17 @@ class EntsoeDayAhead:
         access_token,
         area,
         currency="auto",
+        measurement_unit="kWh",
         session=None,
         url="https://transparency.entsoe.eu/api",
+        forex: Optional[Forex] = None,
     ) -> None:
         self.access_token = access_token
         self.area = area
         self.currency = currency
         self.url = url
         self.session = session if session is not None else aiohttp.ClientSession()
+        self.forex = forex
 
         self.original_currency = None
         self.measurement_unit = None
@@ -39,7 +50,25 @@ class EntsoeDayAhead:
         self.end = None
         self.resolution = None
 
+        if measurement_unit.lower() == "mwh":
+            self.measurement_unit = "MWh"
+        elif measurement_unit.lower() == "kwh":
+            self.measurement_unit = "kWh"
+        elif measurement_unit.lower() == "wh":
+            self.measurement_unit = "Wh"
+
         self.prices = []
+
+    def get_unit_multiplier(self, unit):
+        mults = {"": 1, "k": 1e3, "m": 1e6}
+
+        unit = unit.lower()
+        self_unit = self.measurement_unit.lower()
+
+        if not (unit.endswith("wh") and self_unit.endswith("wh")):
+            raise ValueError("Both units must be multipliers of Wh")
+
+        return mults[self_unit[0]] / mults[unit[0]]
 
     async def update(self, startday: Optional[datetime.datetime] = None):
         if startday is None:
@@ -67,16 +96,23 @@ class EntsoeDayAhead:
             },
         ) as response:
             res = await response.read()
-            self.update_state(day_ahead_price_list(res))
+            await self.update_state(day_ahead_price_list(res))
 
-    def update_state(self, state_dict):
+    async def update_state(self, state_dict):
         self.original_currency = state_dict["currency"]
-        self.measurement_unit = state_dict["measurement_unit"]
         self.start = state_dict["start"]
         self.end = state_dict["end"]
         self.resolution = state_dict["resolution"]
 
+        if (self.original_currency != self.currency) and (self.forex is not None):
+            rates = await self.forex.get_rate(self.original_currency, self.currency)
+            rate = rates[self.currency]
+        else:
+            rate = None
+
+        unit_mult = self.get_unit_multiplier(state_dict["measurement_unit"])
         self.points = [
-            Price(p["start"], p["end"], p["amount"]) for p in state_dict["points"]
+            Price(p["start"], p["end"], p["amount"] * unit_mult, rate)
+            for p in state_dict["points"]
         ]
         self.points.sort(key=lambda p: p.begin)
