@@ -3,8 +3,6 @@ import aiohttp
 
 import datetime
 
-from entsoe.exceptions import DataNotReadyError
-
 from .consts import DAY_AHEAD_DOCUMENT, DATE_FORMAT
 from .xmlreader import day_ahead_price_list
 
@@ -57,6 +55,7 @@ class EntsoeDayAhead:
         self.start = None
         self.end = None
         self.resolution = None
+        self.exchange_rate = None
 
         if measurement_unit.lower() == "mwh":
             self.measurement_unit = "MWh"
@@ -129,6 +128,8 @@ class EntsoeDayAhead:
             rate = rates[self.currency]
         else:
             rate = None
+
+        self.exchange_rate = rate
 
         unit_mult = self.get_unit_multiplier(state_dict["measurement_unit"])
         self.points = [
