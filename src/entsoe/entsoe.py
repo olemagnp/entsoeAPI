@@ -3,6 +3,8 @@ import aiohttp
 
 import datetime
 
+from entsoe.exceptions import DataNotReadyError
+
 from .consts import DAY_AHEAD_DOCUMENT, DATE_FORMAT
 from .xmlreader import day_ahead_price_list
 
@@ -63,7 +65,7 @@ class EntsoeDayAhead:
         elif measurement_unit.lower() == "wh":
             self.measurement_unit = "Wh"
 
-        self.prices: List[Price] = []
+        self.points: List[Price] = []
 
     def get_unit_multiplier(self, unit):
         mults = {"": 1, "k": 1e3, "m": 1e6}
@@ -76,16 +78,14 @@ class EntsoeDayAhead:
 
         return mults[self_unit[0]] / mults[unit[0]]
 
-    async def update(self, startday: Optional[datetime.datetime] = None):
-        if startday is None:
-            now = datetime.datetime.now()
-            update_time = now.replace(hour=13, minute=0, second=0, microsecond=0)
-            if now < update_time:
-                startday = now - datetime.timedelta(days=1)
-            else:
-                startday = now
+    async def update(self, day_before: datetime.datetime):
+        """
+        Fetch day-ahead prices.
 
-        start_point = startday.replace(hour=23, minute=0, second=0, microsecond=0)
+        Args:
+            day_before: The day before the day to fetch prices. I.e., if `day_before` is today, prices for tomorrow will be fetched.
+        """
+        start_point = day_before.replace(hour=23, minute=0, second=0, microsecond=0)
         start_date_str = start_point.strftime(DATE_FORMAT)
         end_point = start_point + datetime.timedelta(days=1)
         end_date_str = end_point.strftime(DATE_FORMAT)
@@ -102,9 +102,16 @@ class EntsoeDayAhead:
             },
         ) as response:
             res = await response.read()
-            await self.update_state(day_ahead_price_list(res))
+            d = day_ahead_price_list(res)
+            await self._update_state(d)
 
-    async def update_state(self, state_dict):
+    async def _update_state(self, state_dict):
+        """
+        Update state with data from entsoe
+
+        Args:
+            state_dict: Dict with elements read from the entsoe response.
+        """
         self.original_currency = state_dict["currency"]
         self.start = state_dict["start"]
         self.end = state_dict["end"]

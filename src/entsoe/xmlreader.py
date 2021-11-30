@@ -1,9 +1,14 @@
 from lxml import objectify
 import isodate
 
+from .exceptions import DataNotReadyError
+
 
 def day_ahead_price_list(xml):
     root = objectify.fromstring(xml)
+
+    if hasattr(root, "Reason"):
+        raise DataNotReadyError()
 
     ts = root.TimeSeries
     period = ts.Period
@@ -42,132 +47,151 @@ def day_ahead_price_list(xml):
 if __name__ == "__main__":
     d = day_ahead_price_list(
         """<?xml version="1.0" encoding="UTF-8"?>
-    <Publication_MarketDocument xmlns="urn:iec62325.351:tc57wg16:451-3:publicationdocument:7:0">
-        <mRID>30eee84e89aa4bcfa0916411b2014eb9</mRID>
-        <revisionNumber>1</revisionNumber>
-        <type>A44</type>
-        <sender_MarketParticipant.mRID codingScheme="A01">10X1001A1001A450</sender_MarketParticipant.mRID>
-        <sender_MarketParticipant.marketRole.type>A32</sender_MarketParticipant.marketRole.type>
-        <receiver_MarketParticipant.mRID codingScheme="A01">10X1001A1001A450</receiver_MarketParticipant.mRID>
-        <receiver_MarketParticipant.marketRole.type>A33</receiver_MarketParticipant.marketRole.type>
-        <createdDateTime>2021-10-19T10:55:41Z</createdDateTime>
-        <period.timeInterval>
-            <start>2021-10-18T22:00Z</start>
-            <end>2021-10-19T22:00Z</end>
-        </period.timeInterval>
-        <TimeSeries>
-            <mRID>1</mRID>
-            <businessType>A62</businessType>
-            <in_Domain.mRID codingScheme="A01">10YNO-3--------J</in_Domain.mRID>
-            <out_Domain.mRID codingScheme="A01">10YNO-3--------J</out_Domain.mRID>
-            <currency_Unit.name>EUR</currency_Unit.name>
-            <price_Measure_Unit.name>MWH</price_Measure_Unit.name>
-            <curveType>A01</curveType>
-            <Period>
-                <timeInterval>
-                    <start>2021-10-18T22:00Z</start>
-                    <end>2021-10-19T22:00Z</end>
-                </timeInterval>
-                <resolution>PT60M</resolution>
-                <Point>
-                    <position>1</position>
-                    <price.amount>21.39</price.amount>
-                </Point>
-                <Point>
-                    <position>2</position>
-                    <price.amount>20.83</price.amount>
-                </Point>
-                <Point>
-                    <position>3</position>
-                    <price.amount>20.50</price.amount>
-                </Point>
-                <Point>
-                    <position>4</position>
-                    <price.amount>20.54</price.amount>
-                </Point>
-                <Point>
-                    <position>5</position>
-                    <price.amount>20.75</price.amount>
-                </Point>
-                <Point>
-                    <position>6</position>
-                    <price.amount>20.69</price.amount>
-                </Point>
-                <Point>
-                    <position>7</position>
-                    <price.amount>19.97</price.amount>
-                </Point>
-                <Point>
-                    <position>8</position>
-                    <price.amount>20.04</price.amount>
-                </Point>
-                <Point>
-                    <position>9</position>
-                    <price.amount>20.84</price.amount>
-                </Point>
-                <Point>
-                    <position>10</position>
-                    <price.amount>20.65</price.amount>
-                </Point>
-                <Point>
-                    <position>11</position>
-                    <price.amount>20.43</price.amount>
-                </Point>
-                <Point>
-                    <position>12</position>
-                    <price.amount>20.35</price.amount>
-                </Point>
-                <Point>
-                    <position>13</position>
-                    <price.amount>20.08</price.amount>
-                </Point>
-                <Point>
-                    <position>14</position>
-                    <price.amount>20.00</price.amount>
-                </Point>
-                <Point>
-                    <position>15</position>
-                    <price.amount>20.00</price.amount>
-                </Point>
-                <Point>
-                    <position>16</position>
-                    <price.amount>19.15</price.amount>
-                </Point>
-                <Point>
-                    <position>17</position>
-                    <price.amount>17.40</price.amount>
-                </Point>
-                <Point>
-                    <position>18</position>
-                    <price.amount>16.52</price.amount>
-                </Point>
-                <Point>
-                    <position>19</position>
-                    <price.amount>15.97</price.amount>
-                </Point>
-                <Point>
-                    <position>20</position>
-                    <price.amount>18.61</price.amount>
-                </Point>
-                <Point>
-                    <position>21</position>
-                    <price.amount>19.08</price.amount>
-                </Point>
-                <Point>
-                    <position>22</position>
-                    <price.amount>19.05</price.amount>
-                </Point>
-                <Point>
-                    <position>23</position>
-                    <price.amount>18.57</price.amount>
-                </Point>
-                <Point>
-                    <position>24</position>
-                    <price.amount>16.97</price.amount>
-                </Point>
-            </Period>
-        </TimeSeries>
-    </Publication_MarketDocument>""".encode(
+<Acknowledgement_MarketDocument
+	xmlns="urn:iec62325.351:tc57wg16:451-1:acknowledgementdocument:7:0">
+    <mRID>3af1af2e-5c33-4</mRID>
+    <createdDateTime>2021-11-30T15:10:01Z</createdDateTime>
+    <sender_MarketParticipant.mRID codingScheme="A01">10X1001A1001A450</sender_MarketParticipant.mRID>
+    <sender_MarketParticipant.marketRole.type>A32</sender_MarketParticipant.marketRole.type>
+    <receiver_MarketParticipant.mRID codingScheme="A01">10X1001A1001A450</receiver_MarketParticipant.mRID>
+    <receiver_MarketParticipant.marketRole.type>A39</receiver_MarketParticipant.marketRole.type>
+    <received_MarketDocument.createdDateTime>2021-11-30T15:10:01Z</received_MarketDocument.createdDateTime>
+    <Reason>
+        <code>999</code>
+        <text>No matching data found for Data item Day-ahead Prices [12.1.D] (10YNO-3--------J, 10YNO-3--------J) and interval 2021-12-01T23:00:00.000Z/2021-12-02T23:00:00.000Z.</text>
+    </Reason>
+</Acknowledgement_MarketDocument>""".encode(
             "UTF-8"
         )
     )
+#     d = day_ahead_price_list(
+#         """<?xml version="1.0" encoding="UTF-8"?>
+#     <Publication_MarketDocument xmlns="urn:iec62325.351:tc57wg16:451-3:publicationdocument:7:0">
+#         <mRID>30eee84e89aa4bcfa0916411b2014eb9</mRID>
+#         <revisionNumber>1</revisionNumber>
+#         <type>A44</type>
+#         <sender_MarketParticipant.mRID codingScheme="A01">10X1001A1001A450</sender_MarketParticipant.mRID>
+#         <sender_MarketParticipant.marketRole.type>A32</sender_MarketParticipant.marketRole.type>
+#         <receiver_MarketParticipant.mRID codingScheme="A01">10X1001A1001A450</receiver_MarketParticipant.mRID>
+#         <receiver_MarketParticipant.marketRole.type>A33</receiver_MarketParticipant.marketRole.type>
+#         <createdDateTime>2021-10-19T10:55:41Z</createdDateTime>
+#         <period.timeInterval>
+#             <start>2021-10-18T22:00Z</start>
+#             <end>2021-10-19T22:00Z</end>
+#         </period.timeInterval>
+#         <TimeSeries>
+#             <mRID>1</mRID>
+#             <businessType>A62</businessType>
+#             <in_Domain.mRID codingScheme="A01">10YNO-3--------J</in_Domain.mRID>
+#             <out_Domain.mRID codingScheme="A01">10YNO-3--------J</out_Domain.mRID>
+#             <currency_Unit.name>EUR</currency_Unit.name>
+#             <price_Measure_Unit.name>MWH</price_Measure_Unit.name>
+#             <curveType>A01</curveType>
+#             <Period>
+#                 <timeInterval>
+#                     <start>2021-10-18T22:00Z</start>
+#                     <end>2021-10-19T22:00Z</end>
+#                 </timeInterval>
+#                 <resolution>PT60M</resolution>
+#                 <Point>
+#                     <position>1</position>
+#                     <price.amount>21.39</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>2</position>
+#                     <price.amount>20.83</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>3</position>
+#                     <price.amount>20.50</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>4</position>
+#                     <price.amount>20.54</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>5</position>
+#                     <price.amount>20.75</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>6</position>
+#                     <price.amount>20.69</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>7</position>
+#                     <price.amount>19.97</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>8</position>
+#                     <price.amount>20.04</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>9</position>
+#                     <price.amount>20.84</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>10</position>
+#                     <price.amount>20.65</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>11</position>
+#                     <price.amount>20.43</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>12</position>
+#                     <price.amount>20.35</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>13</position>
+#                     <price.amount>20.08</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>14</position>
+#                     <price.amount>20.00</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>15</position>
+#                     <price.amount>20.00</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>16</position>
+#                     <price.amount>19.15</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>17</position>
+#                     <price.amount>17.40</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>18</position>
+#                     <price.amount>16.52</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>19</position>
+#                     <price.amount>15.97</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>20</position>
+#                     <price.amount>18.61</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>21</position>
+#                     <price.amount>19.08</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>22</position>
+#                     <price.amount>19.05</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>23</position>
+#                     <price.amount>18.57</price.amount>
+#                 </Point>
+#                 <Point>
+#                     <position>24</position>
+#                     <price.amount>16.97</price.amount>
+#                 </Point>
+#             </Period>
+#         </TimeSeries>
+#     </Publication_MarketDocument>""".encode(
+#             "UTF-8"
+#         )
+#     )

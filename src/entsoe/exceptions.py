@@ -1,0 +1,2 @@
+class DataNotReadyError(ValueError):
+    pass
