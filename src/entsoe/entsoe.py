@@ -78,14 +78,21 @@ class EntsoeDayAhead:
 
         return mults[self_unit[0]] / mults[unit[0]]
 
-    async def update(self, day_before: datetime.datetime):
+    async def update(self, day: datetime.datetime):
         """
         Fetch day-ahead prices.
 
         Args:
-            day_before: The day before the day to fetch prices. I.e., if `day_before` is today, prices for tomorrow will be fetched.
+            day: The day to fetch prices. I.e., if `day` is today, prices for today will be fetched. If this datetime is naive, it is assumed to be in utc time. This will likely lead to problems with other timezones.
         """
-        start_point = day_before.replace(hour=23, minute=0, second=0, microsecond=0)
+        day_before = day.replace(hour=0, minute=0, second=0, microsecond=0)
+        if day_before.tzinfo != datetime.timezone.utc:
+            if day_before.tzinfo is None:
+                day_before = day_before.replace(tzinfo=datetime.timezone.utc)
+            else:
+                day_before = day_before.astimezone(datetime.timezone.utc)
+
+        start_point = day_before
         start_date_str = start_point.strftime(DATE_FORMAT)
         end_point = start_point + datetime.timedelta(days=1)
         end_date_str = end_point.strftime(DATE_FORMAT)
